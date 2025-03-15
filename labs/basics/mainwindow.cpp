@@ -25,6 +25,7 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
     view->setDragEnabled(false);
     view->setGridSize(QSize(100, 100));
     view->setSelectionMode(QListWidget::NoSelection);
+    view->setResizeMode(QListWidget::Adjust);
     next = new QPushButton("Next question");
     next->setEnabled(false);
     previous = new QPushButton("Previous question");
@@ -193,5 +194,3 @@ void MainWindow::setItemColor(int ind, int col) {
 void MainWindow::currentChanged() {
     history.push(view->currentRow());
 }
-
-
