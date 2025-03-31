@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 
+#include <iostream>
 #include <qboxlayout.h>
 #include <qgroupbox.h>
 #include <qlabel.h>
@@ -13,24 +14,27 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
     setWindowTitle("Tickets");
     setMinimumSize(400,400);
 
-    QWidget *widget = new QWidget();
+    setStyleSheet("color: black");
+
+    QWidget *widget = new QWidget(this);
     setCentralWidget(widget);
-    QVBoxLayout *layout = new QVBoxLayout(this);
+    QVBoxLayout *layout = new QVBoxLayout(widget);
 
     gen = std::mt19937(std::random_device{}());
 
-    count = new QSpinBox();
-    view = new QListWidget();
+    count = new QSpinBox(widget);
+    count->setMinimum(1);
+    view = new QListWidget(widget);
     view->setViewMode(QListWidget::ViewMode::IconMode);
     view->setDragEnabled(false);
     view->setGridSize(QSize(100, 100));
     view->setSelectionMode(QListWidget::NoSelection);
     view->setResizeMode(QListWidget::Adjust);
-    next = new QPushButton("Next question");
+    next = new QPushButton("Next question", widget);
     next->setEnabled(false);
-    previous = new QPushButton("Previous question");
-    progresstotal = new QProgressBar();
-    progressgreen = new QProgressBar();
+    previous = new QPushButton("Previous question", widget);
+    progresstotal = new QProgressBar(widget);
+    progressgreen = new QProgressBar(widget);
     progressgreen->setMinimum(0);
     progresstotal->setMinimum(0);
 
@@ -46,28 +50,28 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
     // progresstotal->setStyleSheet("background-color: rgb(255, 255, 255);" "QProgressBar::chunk { background: QLinearGradient(x1: 0, x2: 1, y1 :0, y2: 0, stop: 0 #FF0000, stop: 1 #00FF00); }");
     // progressgreen->setStyleSheet("background-color: rgb(220, 255, 220);" "QProgressBar::chunk { background-color: rgb(0,255,0); }");
 
-    question_view = new QGroupBox();
-    number = new QLabel("Number");
-    name = new QLabel("Name");
-    line_edit = new QLineEdit("123");
-    status = new QComboBox();
+    question_view = new QGroupBox(widget);
+    number = new QLabel("Number", question_view);
+    name = new QLabel("Name", question_view);
+    line_edit = new QLineEdit("123", question_view);
+    status = new QComboBox(question_view);
     status->addItem("White");
     status->addItem("Yellow");
     status->addItem("Green");
-    QVBoxLayout* question_layout = new QVBoxLayout();
+    QVBoxLayout* question_layout = new QVBoxLayout(question_view);
     question_layout->addWidget(number);
     question_layout->addWidget(name);
     question_layout->addWidget(line_edit);
     question_layout->addWidget(status);
     question_view->setLayout(question_layout);
     question_view->setEnabled(false);
-    QHBoxLayout *hlayout = new QHBoxLayout();
+    QHBoxLayout *hlayout = new QHBoxLayout(widget);
     layout->addWidget(count);
     hlayout->addWidget(next);
     hlayout->addWidget(previous);
     layout->addLayout(hlayout);
     layout->addWidget(count);
-    QHBoxLayout *hlayout2 = new QHBoxLayout();
+    QHBoxLayout *hlayout2 = new QHBoxLayout(widget);
     hlayout2->addWidget(view);
     hlayout2->addWidget(question_view);
     layout->addLayout(hlayout2);
@@ -75,6 +79,8 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
     layout->addWidget(progressgreen);
 
     widget->setLayout(layout);
+
+    changeCount();
 
     connect(count, &QSpinBox::editingFinished, this, &MainWindow::changeCount);
     connect(view, &QListWidget::itemDoubleClicked, this, &MainWindow::doubleClick);
@@ -90,17 +96,22 @@ void MainWindow::changeCount() {
     question_view->setEnabled(false);
     tickets.resize(count->value());
     while (view->count() > count->value()) {
-        ng.erase(view->count() - 1);
-        def.erase(view->count() - 1);
         view->takeItem(view->count() - 1);
     }
     while (view->count() < count->value()) {
         QListWidgetItem* item = new QListWidgetItem(std::to_string(view->count() + 1).data());
         tickets[view->count()].name = ("Ticket " + std::to_string(view->count() + 1)).data();
-        ng.insert(view->count());
-        def.insert(view->count());
+        tickets[view->count()].number = view->count();
         item->setSizeHint(QSize(100, 100));
+        item->setBackground(QBrush(Qt::white));
         view->addItem(item);
+    }
+    for (auto& i : tickets) {
+        i.name = ("Ticket " + std::to_string(i.number + 1)).data();
+        i.state = 0;
+        view->item(i.number)->setBackground(QBrush(Qt::white));
+        def.insert(i.number);
+        ng.insert(i.number);
     }
     next->setEnabled(ng.size() != 0);
     updateBars();
