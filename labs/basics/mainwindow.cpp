@@ -106,6 +106,8 @@ void MainWindow::changeCount() {
         item->setBackground(QBrush(Qt::white));
         view->addItem(item);
     }
+    def.clear();
+    ng.clear();
     for (auto& i : tickets) {
         i.name = ("Ticket " + std::to_string(i.number + 1)).data();
         i.state = 0;
@@ -155,7 +157,9 @@ void MainWindow::tonext() {
     std::advance(it, std::uniform_int_distribution<>(0, ng.size() - 1)(gen));
     int ind = *it;
     view->setCurrentRow(ind);
-    view->currentItem()->setSelected(true);
+    view->item(ind)->setSelected(true);
+    view->setFocus();
+    // view->currentItem()->setSelected(true);
     singleClick(view->currentItem());
 }
 
@@ -166,6 +170,7 @@ void MainWindow::toprev() {
     while (!history.empty()) {
         if ((history.top()) < (view->count()) &&  (history.top() != now)) {
             view->setCurrentRow(history.top());
+            view->setFocus();
             singleClick(view->currentItem());
             return;
         }
